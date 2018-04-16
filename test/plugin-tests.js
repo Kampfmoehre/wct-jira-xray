@@ -109,6 +109,71 @@ suite("plugin", () => {
     });
   });
 
+  suite("parseCustomFields", () => {
+    let parseCustomFields;
+
+    setup(() => {
+      parseCustomFields = plugin.__get__("parseCustomFields");
+    });
+
+    test("should extract all keys and value", () => {
+      const customFields = [
+        "key1:value1",
+        "key2:value2"
+      ];
+      const result = parseCustomFields(customFields);
+      const expected = [
+        { key: "key1", value: "value1" },
+        { key: "key2", value: "value2" }
+      ];
+      expect(result).to.deep.equal(expected);
+    });
+
+    test("should not fail, if cli argument passed incorrectly", () => {
+      const customFields = [
+        "key1",
+        ""
+      ];
+      const result = parseCustomFields(customFields);
+      const expected = [
+        { key: "key1", value: "" }
+      ];
+      expect(result).to.deep.equal(expected);
+    });
+  });
+
+  suite("checkAndExpandOptions", () => {
+    let checkAndExpandOptions;
+
+    setup(() => {
+      checkAndExpandOptions = plugin.__get__("checkAndExpandOptions");
+    });
+
+    test("should return false if no host is set", () => {
+      const result = checkAndExpandOptions(null);
+      expect(result).to.be.false;
+    });
+
+    test("should return false if no authorization is set", () => {
+      const result = checkAndExpandOptions({jiraHost: "someHost"});
+      expect(result).to.be.false;
+    });
+
+    test("should set default options", () => {
+      const options = {
+        jiraHost: "someHost",
+        jiraAuthorization: "Basic abcdef0123456789",
+      };
+      const result = checkAndExpandOptions(options);
+      const expected = {
+        port: 80,
+        host: "someHost",
+        authorization: "Basic abcdef0123456789",
+      };
+      expect(result).to.deep.equal(expected);
+    });
+  });
+
   suite("createXrayJson", () => {
     let createXrayJson;
 
@@ -132,13 +197,11 @@ suite("plugin", () => {
       const start = "2018-03-19T10:04:50+01:00";
       const finish = "2018-03-19T10:05:10+01:00";
       const enviroment = "Chrome64";
-      const version = "Some Version for Test Execution";
-      const result = createXrayJson(data, start, finish, enviroment, version);
+      const result = createXrayJson(data, start, finish, enviroment, null);
       const expected = `{
   "info": {
     "summary": "Test execution for Web Component Tests",
     "description": "Automatically generated from Web Component Test results",
-    "version": "${version}",
     "revision": "1.0.0",
     "startDate": "${start}",
     "finishDate": "${finish}"
@@ -156,6 +219,43 @@ suite("plugin", () => {
       "finish": "2018-03-19T10:05:03+01:00",
       "comment": "Some error message",
       "status": "FAIL"
+    }
+  ]
+}`;
+      expect(result).to.equal(expected);
+    });
+
+    test("should add custom fields", () => {
+      const data = [{
+        name: "Test 1",
+        start: "2018-03-19T10:05:00+01:00",
+        end: "2018-03-19T10:05:01+01:00",
+        status: "PASS"
+      }];
+      const start = "2018-03-19T10:04:50+01:00";
+      const finish = "2018-03-19T10:05:10+01:00";
+      const enviroment = "Chrome64";
+      const customFields = [
+        { key: "one", value: "two" },
+        { key: "three", value: "four" }
+      ];
+      const result = createXrayJson(data, start, finish, enviroment, customFields);
+      const expected = `{
+  "info": {
+    "summary": "Test execution for Web Component Tests",
+    "description": "Automatically generated from Web Component Test results",
+    "revision": "1.0.0",
+    "startDate": "${start}",
+    "finishDate": "${finish}",
+    "one": "two",
+    "three": "four"
+  },
+  "tests": [
+    {
+      "testKey": "Test 1",
+      "start": "2018-03-19T10:05:00+01:00",
+      "finish": "2018-03-19T10:05:01+01:00",
+      "status": "PASS"
     }
   ]
 }`;

@@ -32,10 +32,10 @@
   },
   "wct-plugin": {
     "cli-options": {
-      "testExecutionVersion": {
-        "help": "The Version that is set in the Test Execution as Fix Version",
-        "full": "test-execution-version",
-        "type": "string"
+      "customField": {
+        "help": "Any custom fields and their value that must or should be set in the Test Execution",
+        "full": "custom-field",
+        "list": true
       },
       "jiraHost": {
         "help": "The host address of the JIRA instance to report tests to",

@@ -89,19 +89,27 @@ const filterTestsByJiraIssueKey = (tests) => {
  * @param {string} start
  * @param {string} finish
  * @param {string} environment
- * @param {string} version
+ * @param {object[]} customFields
+ * @param {string} customFields.key
+ * @param {string} customFields.value
  * @return {string}
  */
-const createXrayJson = (tests, start, finish, environment, version) => {
+const createXrayJson = (tests, start, finish, environment, customFields) => {
+  let info = {
+    summary: "Test execution for Web Component Tests",
+    description: "Automatically generated from Web Component Test results",
+    revision: "1.0.0",
+    startDate: start,
+    finishDate: finish
+  };
+  if (customFields) {
+    customFields.forEach((field) => {
+      info[field.key] = field.value;
+    });
+  }
+
   return JSON.stringify({
-    info: {
-      summary: "Test execution for Web Component Tests",
-      description: "Automatically generated from Web Component Test results",
-      version: version,
-      revision: "1.0.0",
-      startDate: start,
-      finishDate: finish
-    },
+    info: info,
     tests: tests.map((test) => {
       return {
         testKey: test.name,
@@ -116,21 +124,19 @@ const createXrayJson = (tests, start, finish, environment, version) => {
 
 const checkAndExpandOptions = (pluginOptions) => {
   let options = {
-    version: ""
+    port: 80
   };
 
-  if (pluginOptions.jiraPort) {
-    options.port = pluginOptions.jiraPort;
-  } else {
-    options.port = 80;
-  }
-
-  if (!pluginOptions.jiraHost) {
+  if (!pluginOptions || !pluginOptions.jiraHost) {
     console.error("No host specified, unable to report result to XRAY");
 
     return false;
   }
   options.host = pluginOptions.jiraHost;
+
+  if (pluginOptions.jiraPort) {
+    options.port = pluginOptions.jiraPort;
+  }
 
   if (!pluginOptions.jiraAuthorization) {
     console.error("No authorization specified, unable to report result to XRAY");
@@ -139,11 +145,32 @@ const checkAndExpandOptions = (pluginOptions) => {
   }
   options.authorization = pluginOptions.jiraAuthorization;
 
-  if (pluginOptions.testExecutionVersion) {
-    options.version = pluginOptions.testExecutionVersion;
+  if (pluginOptions.customField) {
+    options.customFields = parseCustomFields(pluginOptions.customField);
   }
 
   return options;
+};
+
+/**
+ * Tries to extract the keys and values from the command line
+ * @param {string[]} customFields
+ */
+const parseCustomFields = (customFields) => {
+  let result = [];
+
+  customFields
+    .forEach((keyValuePair) => {
+      if (keyValuePair) {
+        const elements = keyValuePair.split(":");
+        result.push({
+          key: elements[0],
+          value: elements[1] || ""
+        });
+      }
+    });
+
+  return result;
 };
 
 /**
@@ -162,7 +189,6 @@ const plugin = (wct, pluginOptions) => {
 
     done();
   });
-
 
   /**
    * @type {{}[]}
@@ -215,9 +241,8 @@ const plugin = (wct, pluginOptions) => {
     start = formatMomentToXrayCompatibleDate(start);
     finish = formatMomentToXrayCompatibleDate(finish);
 
-    const version = pluginOptions.testExecutionVersion || null;
     const testsWithIssue = filterTestsByJiraIssueKey(tests);
-    const json = createXrayJson(testsWithIssue, start, finish, environment, version);
+    const json = createXrayJson(testsWithIssue, start, finish, environment, options.customFields);
 
     xray(options.host, options.port, options.authorization, json)
       .then((result) => {
