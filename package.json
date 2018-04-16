@@ -1,0 +1,57 @@
+{
+  "name": "wct-jira-xray",
+  "version": "0.0.1",
+  "description": "A Plugin for Web Component Tester to report test result to JIRA using XRAY import API",
+  "main": "src/plugin.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "mocha --ui tdd test/*.js"
+  },
+  "keywords": [
+    "wct",
+    "jira",
+    "xray",
+    "plugin",
+    "web-component-tester"
+  ],
+  "author": "Kampfmoehre <kampfmoehre@gmx.de>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kampfmoehre/wct-jira-xray"
+  },
+  "dependencies": {
+    "moment": "^2.22.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.19.1",
+    "mocha": "^5.1.0",
+    "nyc": "^11.6.0",
+    "rewire": "^4.0.0"
+  },
+  "wct-plugin": {
+    "cli-options": {
+      "testExecutionVersion": {
+        "help": "The Version that is set in the Test Execution as Fix Version",
+        "full": "test-execution-version",
+        "type": "string"
+      },
+      "jiraHost": {
+        "help": "The host address of the JIRA instance to report tests to",
+        "full": "jira-host",
+        "type": "string"
+      },
+      "jiraPort": {
+        "help": "The port of the JIRA instance to report tests to",
+        "full": "jira-port",
+        "type": "string"
+      },
+      "jiraAuthorization": {
+        "help": "The authorization token for the JIRA instance to report tests to",
+        "full": "jira-authorization",
+        "type": "string"
+      }
+    }
+  }
+}
