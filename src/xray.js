@@ -1,4 +1,4 @@
-const http = require("http");
+const https = require("https");
 
 /**
  * Sends a post request to import Test results to Jira XRAY
@@ -26,7 +26,7 @@ const importTestResultToXray = (host, port, authorization, json) => {
   };
 
   return new Promise((resolve, reject) => {
-    const request = http.request(options, (response) => {
+    const callback = (response) => {
       let result = "";
       response.on("data", (chunk) => {
         result += chunk;
@@ -43,8 +43,11 @@ const importTestResultToXray = (host, port, authorization, json) => {
         }
         resolve(result);
       });
+    };
 
-    });
+    // TODOfind a less security critical way to handle self signed certificates
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const request = https.request(options, callback);
 
     request.on("error", (e) => {
       reject(e);
