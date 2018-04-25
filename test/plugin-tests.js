@@ -119,12 +119,12 @@ suite("plugin", () => {
     test("should extract all keys and value", () => {
       const customFields = [
         "key1:value1",
-        "key2:value2"
+        "key 2:value 2"
       ];
       const result = parseCustomFields(customFields);
       const expected = [
         { key: "key1", value: "value1" },
-        { key: "key2", value: "value2" }
+        { key: "key 2", value: "value 2" }
       ];
       expect(result).to.deep.equal(expected);
     });
