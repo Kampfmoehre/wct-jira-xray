@@ -35,7 +35,7 @@ Given your JIRA is configured, as such that every issue needs a value for the fi
 
 The plugin will then append this to the info object which is send to the XRAY rest API and then used to create the Test Execution.
 When you want to use multiple values you can specify --custom-field Argument multiple times like
-```jwct --plugin jira-xray --custom-fields "version:1.2.3" --customFields "yourField:yourValue"```
+```wct --plugin jira-xray --custom-fields "version:1.2.3" --customFields "yourField:yourValue"```
 
 ## Development
 Be sure to run ```npm run lint``` before checking in to avoid linter errors.
